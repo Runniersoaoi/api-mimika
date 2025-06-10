@@ -20,7 +20,7 @@ app.add_middleware(
 )
 
 # Cargar modelo
-model_dict = pickle.load(open('./model.p', 'rb'))
+model_dict = pickle.load(open('model.p', 'rb'))
 model = model_dict['model']
 
 # MediaPipe
