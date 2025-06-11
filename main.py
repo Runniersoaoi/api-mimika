@@ -13,26 +13,34 @@ app = FastAPI()
 # CORS para conexión con Next.js
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173","*"],  # ajusta para seguridad
+    allow_origins=["http://localhost:5173", "*"],  # ajusta para seguridad
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Cargar modelo
+# Cargar modelos
 model_dict = pickle.load(open('model.p', 'rb'))
 model = model_dict['model']
+
+modelbd_dict = pickle.load(open('modelbd.p', 'rb'))
+modelbd = modelbd_dict['model']
+
+modelmn_dict = pickle.load(open('modelmn.p', 'rb'))
+modelmn = modelmn_dict['model']
 
 # MediaPipe
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.3)
 
+# Diccionarios de etiquetas
 labels_dict = {0: 'A', 1: 'E', 2: 'I', 3: 'O', 4: 'U'}
+labels_bd = {0: 'B', 1: 'D'}  # ejemplo, ajusta según tu modelo
+labels_mn = {0: 'M', 1: 'N'}  # ejemplo, ajusta según tu modelo
 
-@app.post("/predict/")
-async def predict(file: UploadFile = File(...)):
+def process_image(file: UploadFile):
     try:
-        image = Image.open(BytesIO(await file.read()))
+        image = Image.open(BytesIO(file))
         image = np.array(image.convert("RGB"))
 
         data_aux = []
@@ -56,11 +64,45 @@ async def predict(file: UploadFile = File(...)):
                 data_aux.append(y - min(y_))
 
             if len(data_aux) == 42:
-                prediction = model.predict([np.asarray(data_aux)])
-                predicted_character = labels_dict[int(prediction[0])]
-                return {"prediction": predicted_character}
+                return np.asarray(data_aux)
 
-        return {"prediction": "None"}
+        return None
     except Exception as e:
-        print("Error:", e)
-        return {"error": str(e)}
+        print("Error en process_image:", e)
+        return None
+
+@app.post("/predict1/")
+async def predict(file: UploadFile = File(...)):
+    data = await file.read()
+    processed = process_image(data)
+
+    if processed is not None:
+        prediction = model.predict([processed])
+        predicted_character = labels_dict[int(prediction[0])]
+        return {"prediction": predicted_character}
+
+    return {"prediction": "None"}
+
+@app.post("/predict2/")
+async def predict_bd(file: UploadFile = File(...)):
+    data = await file.read()
+    processed = process_image(data)
+
+    if processed is not None:
+        prediction = modelbd.predict([processed])
+        predicted_character = labels_bd[int(prediction[0])]
+        return {"prediction": predicted_character}
+
+    return {"prediction": "None"}
+
+@app.post("/predict3/")
+async def predict_mn(file: UploadFile = File(...)):
+    data = await file.read()
+    processed = process_image(data)
+
+    if processed is not None:
+        prediction = modelmn.predict([processed])
+        predicted_character = labels_mn[int(prediction[0])]
+        return {"prediction": predicted_character}
+
+    return {"prediction": "None"}
