@@ -35,8 +35,8 @@ hands = mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.3)
 
 # Diccionarios de etiquetas
 labels_dict = {0: 'A', 1: 'E', 2: 'I', 3: 'O', 4: 'U'}
-labels_bd = {0: 'B', 1: 'D'}  # ejemplo, ajusta según tu modelo
-labels_mn = {0: 'M', 1: 'N'}  # ejemplo, ajusta según tu modelo
+labels_bd = {0: 'B', 1: 'D', 2: 'F', 3: 'R', 4: 'P'}  # ejemplo, ajusta según tu modelo
+labels_mn = {0: 'M', 1: 'N', 2: 'L', 3: 'S', 4: 'T'},   # ejemplo, ajusta según tu modelo
 
 def process_image(file: UploadFile):
     try:
